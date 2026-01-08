@@ -4,6 +4,7 @@ import '@fontsource/playfair-display';
 import '@fontsource/inter';
 import '../styles/global.css'; // <-- Agrega esta línea
 import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
 
 interface Props {
 	title: string;
@@ -20,9 +21,12 @@ const { title } = Astro.props;
 	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 	<title>{title}</title>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 <Navbar />
-<slot />
+<div class="flex-grow">
+    <slot />
+</div>
+<Footer />
 </body>
 </html>
 

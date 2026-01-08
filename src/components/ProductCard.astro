@@ -1,0 +1,54 @@
+---
+interface Props {
+  id: string;
+  brand: string;
+  name: string;
+  price: number;
+  image: string;
+  isNew?: boolean;
+}
+
+const { id, brand, name, price, image, isNew } = Astro.props;
+
+const formattedPrice = new Intl.NumberFormat('es-CL', {
+  style: 'currency',
+  currency: 'CLP'
+}).format(price);
+---
+
+<div class="group relative">
+    <!-- Badge Nuevo -->
+    {isNew && (
+        <span class="absolute top-4 left-4 z-10 bg-brand-dark text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1">
+            Nuevo
+        </span>
+    )}
+
+    <!-- Imagen -->
+    <div class="relative overflow-hidden aspect-[4/5] bg-gray-100 mb-4 cursor-pointer">
+        <img
+            src={image}
+            alt={name}
+            class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+        />
+        <!-- Overlay con botón rápido -->
+        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <button class="bg-white text-brand-dark px-6 py-3 text-xs font-bold tracking-widest uppercase hover:bg-brand-accent hover:text-white transition-colors shadow-lg translate-y-4 group-hover:translate-y-0 duration-300">
+                Añadir
+            </button>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="text-center space-y-1">
+        <h3 class="text-xs text-brand-muted uppercase tracking-widest">{brand}</h3>
+        <h2 class="font-serif text-lg text-brand-dark group-hover:text-brand-accent transition-colors">
+            <a href={`/producto/${id}`}>
+                <span aria-hidden="true" class="absolute inset-0"></span>
+                {name}
+            </a>
+        </h2>
+        <p class="font-medium text-brand-dark mt-2 text-sm">{formattedPrice}</p>
+    </div>
+</div>
+

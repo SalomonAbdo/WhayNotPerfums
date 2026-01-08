@@ -1,0 +1,129 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProductCard from '../components/ProductCard.astro';
+
+// Datos simulados (mock) de perfumes unisex
+const products = [
+  {
+    id: 'u1',
+    brand: 'Calvin Klein',
+    name: 'CK One',
+    price: 45990,
+    image: 'https://images.unsplash.com/photo-1590156206657-b89d3d9cc2d9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Imagen placeholder genérica producto limpio
+    isNew: false
+  },
+  {
+    id: 'u2',
+    brand: 'Le Labo',
+    name: 'Santal 33',
+    price: 245990,
+    image: 'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Imagen tipo botica/nicho
+    isNew: true
+  },
+  {
+    id: 'u3',
+    brand: 'Tom Ford',
+    name: 'Tobacco Vanille',
+    price: 310990,
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Reutilizando placeholder de lujo
+    isNew: false
+  },
+  {
+    id: 'u4',
+    brand: 'Maison Francis Kurkdjian',
+    name: 'Baccarat Rouge 540',
+    price: 380990,
+    image: 'https://images.unsplash.com/photo-1541643600914-7898d7d22b0b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Placeholder lujo rojo/ambar
+    isNew: true
+  },
+  {
+    id: 'u5',
+    brand: 'Jo Malone',
+    name: 'Wood Sage & Sea Salt',
+    price: 134990,
+    image: 'https://images.unsplash.com/photo-1512777576255-b8d9d236ca93?w=800&auto=format&fit=crop&q=60', // Placeholder natural
+    isNew: false
+  },
+  {
+    id: 'u6',
+    brand: 'Byredo',
+    name: 'Gypsy Water',
+    price: 215990,
+    image: 'https://images.unsplash.com/photo-1615161046522-793d40bd3ac9?w=800&auto=format&fit=crop&q=60', // Placeholder minimalista
+    isNew: false
+  },
+];
+---
+
+<Layout title="Perfumes Unisex | Why Not Perfums">
+    <!-- Header de la sección -->
+    <div class="relative bg-brand-light py-20 md:py-32 overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <h1 class="font-serif text-5xl md:text-7xl text-brand-dark mb-6">
+                Colección Unisex
+            </h1>
+            <p class="font-sans text-brand-muted tracking-[0.2em] uppercase text-xs md:text-sm max-w-2xl mx-auto leading-relaxed">
+                Sin géneros, solo esencia. Fragancias versátiles creadas para compartir y conectar, rompiendo barreras con aromas inolvidables.
+            </p>
+        </div>
+    </div>
+
+    <!-- Filtros y Orden -->
+    <div class="border-b border-gray-100 sticky top-20 z-40 bg-white/95 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <span class="text-sm text-gray-500 font-sans">{products.length} Resultados</span>
+
+            <div class="flex gap-6 text-sm font-sans">
+                 <button class="flex items-center gap-2 text-brand-dark hover:text-brand-accent transition-colors">
+                    Filtros
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                    </svg>
+                </button>
+                <button class="flex items-center gap-2 text-brand-dark hover:text-brand-accent transition-colors">
+                    Ordenar
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Productos -->
+    <main class="max-w-7xl mx-auto px-6 py-12 md:py-20">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+            {products.map((product) => (
+                <ProductCard
+                    id={product.id}
+                    brand={product.brand}
+                    name={product.name}
+                    price={product.price}
+                    image={product.image}
+                    isNew={product.isNew}
+                />
+            ))}
+        </div>
+
+        <!-- Paginación -->
+        <div class="mt-20 flex justify-center">
+             <nav class="flex items-center gap-1" aria-label="Pagination">
+                <button class="p-2 text-gray-400 hover:text-brand-dark transition-colors disabled:opacity-50">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button class="px-4 py-2 text-sm font-medium text-white bg-brand-dark">1</button>
+                <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-brand-dark transition-colors">2</button>
+                <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-brand-dark transition-colors">3</button>
+                <button class="p-2 text-gray-400 hover:text-brand-dark transition-colors">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </main>
+</Layout>
+

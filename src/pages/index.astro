@@ -14,11 +14,17 @@ import Layout from '../layouts/Layout.astro';
 			<p class="font-sans text-brand-muted tracking-[0.2em] uppercase text-sm mb-12">
 				Tienda en línea especializada en la venta de perfumes originales de todas las marcas reconocidas</p>
 			<div class="flex flex-col md:flex-row gap-4 justify-center items-center">
-				<button class="w-64 md:w-auto bg-brand-dark text-white px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-accent transition-colors duration-500">
+				<button class="w-64 md:w-auto bg-brand-dark text-white px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-accent transition-colors duration-500" onclick="window.location.href='/hombre'">
 					COLECCIÓN HOMBRE
 				</button>
-				<button class="w-64 md:w-auto border border-brand-dark text-brand-dark px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-dark hover:text-white transition-all duration-500">
+				<button class="w-64 md:w-auto border border-brand-dark text-brand-dark px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-dark hover:text-white transition-all duration-500" onclick="window.location.href='/mujer'">
 					COLECCIÓN MUJER
+				</button>
+				<button class="w-64 md:w-auto bg-brand-muted text-white px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-accent transition-colors duration-500" onclick="window.location.href='/unisex'">
+					COLECCIÓN UNISEX
+				</button>
+				<button class="w-64 md:w-auto bg-brand-accent text-white px-10 py-4 font-sans text-xs tracking-widest hover:bg-black transition-colors duration-500" onclick="window.location.href='/colecciones'">
+					COLECCIONES
 				</button>
 			</div>
 		</section>
