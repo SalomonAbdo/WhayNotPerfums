@@ -1,11 +1,27 @@
 ---
-import Welcome from '../components/Welcome.astro';
+// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Why Not Perfums | Fragancias Exclusivas">
+	<main>
+		<section class="bg-brand-light py-24 px-6 text-center min-h-[70vh] flex flex-col justify-center">
+			<h1 class="font-serif text-6xl md:text-8xl text-brand-dark mb-6">
+				Why Not <span class="italic font-light text-brand-accent">Perfums®</span>
+			</h1>
+			<p class="font-sans text-brand-muted tracking-[0.2em] uppercase text-sm mb-12">
+				Santiago · Chile · 2026 | 100% Originales </p>
+			<p class="font-sans text-brand-muted tracking-[0.2em] uppercase text-sm mb-12">
+				Tienda en línea especializada en la venta de perfumes originales de todas las marcas reconocidas</p>
+			<div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+				<button class="w-64 md:w-auto bg-brand-dark text-white px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-accent transition-colors duration-500">
+					COLECCIÓN HOMBRE
+				</button>
+				<button class="w-64 md:w-auto border border-brand-dark text-brand-dark px-10 py-4 font-sans text-xs tracking-widest hover:bg-brand-dark hover:text-white transition-all duration-500">
+					COLECCIÓN MUJER
+				</button>
+			</div>
+		</section>
+
+	</main>
 </Layout>
