@@ -6,9 +6,10 @@ interface Props {
   price: number;
   image: string;
   isNew?: boolean;
+  stock?: number;
 }
 
-const { id, brand, name, price, image, isNew } = Astro.props;
+const { id, brand, name, price, image, isNew, stock } = Astro.props;
 
 const formattedPrice = new Intl.NumberFormat('es-CL', {
   style: 'currency',
@@ -19,8 +20,19 @@ const formattedPrice = new Intl.NumberFormat('es-CL', {
 <div class="group relative">
     <!-- Badge Nuevo -->
     {isNew && (
-        <span class="absolute top-4 left-4 z-10 bg-brand-dark text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1">
+        <span class="absolute top-4 right-4 z-10 text-brand-dark text-[10px] uppercase font-bold tracking-widest">
             Nuevo
+        </span>
+    )}
+    <!-- Badge Stock -->
+    {!isNew && stock !== undefined && stock <= 0 && (
+        <span class="absolute top-4 left-4 z-10 bg-gray-500 text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1">
+            Agotado
+        </span>
+    )}
+    {!isNew && stock !== undefined && stock > 0 && stock < 5 && (
+        <span class="absolute top-4 left-4 z-10 bg-red-400 text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1">
+            ¡Últimos!
         </span>
     )}
 
@@ -51,4 +63,3 @@ const formattedPrice = new Intl.NumberFormat('es-CL', {
         <p class="font-medium text-brand-dark mt-2 text-sm">{formattedPrice}</p>
     </div>
 </div>
-

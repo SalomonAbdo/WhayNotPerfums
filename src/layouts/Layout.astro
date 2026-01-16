@@ -5,6 +5,7 @@ import '@fontsource/inter';
 import '../styles/global.css'; // <-- Agrega esta línea
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import AuthModal from '../components/AuthModal.astro'; // Importamos el modal
 
 interface Props {
 	title: string;
@@ -23,6 +24,7 @@ const { title } = Astro.props;
 </head>
 <body class="flex flex-col min-h-screen">
 <Navbar />
+<AuthModal /> <!-- Insertamos el modal globalmente -->
 <div class="flex-grow">
     <slot />
 </div>

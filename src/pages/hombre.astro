@@ -10,7 +10,8 @@ const products = [
     name: 'Sauvage Elixir',
     price: 145990,
     image: 'https://images.unsplash.com/photo-1541643600914-7898d7d22b0b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: true
+    isNew: true,
+    stock: 10
   },
   {
     id: 'h2',
@@ -18,7 +19,8 @@ const products = [
     name: 'Oud Wood',
     price: 289990,
     image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false
+    isNew: false,
+    stock: 0
   },
   {
     id: 'h3',
@@ -26,7 +28,8 @@ const products = [
     name: 'Colonia Essenza',
     price: 112990,
     image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false
+    isNew: false,
+    stock: 5
   },
   {
     id: 'h4',
@@ -34,7 +37,8 @@ const products = [
     name: 'Terre d\'Hermès',
     price: 105990,
     image: 'https://images.unsplash.com/photo-1616999662136-120536d3967d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false
+    isNew: false,
+    stock: 8
   },
   {
     id: 'h5',
@@ -42,7 +46,8 @@ const products = [
     name: 'Aventus',
     price: 345990,
     image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: true
+    isNew: true,
+    stock: 3
   },
   {
     id: 'h6',
@@ -50,7 +55,8 @@ const products = [
     name: 'Acqua di Giò Profondo',
     price: 98990,
     image: 'https://images.unsplash.com/photo-1592864619736-2395d8209861?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false
+    isNew: false,
+    stock: 7
   },
 ];
 ---
@@ -102,6 +108,7 @@ const products = [
                     price={product.price}
                     image={product.image}
                     isNew={product.isNew}
+                    stock={product.stock}
                 />
             ))}
         </div>
@@ -126,4 +133,3 @@ const products = [
         </div>
     </main>
 </Layout>
-
