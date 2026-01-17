@@ -1,0 +1,127 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Mi Perfil | Why Not? Perfums">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 class="text-3xl font-serif text-brand-dark mb-8">Mi Perfil</h1>
+
+        <div id="loading-profile" class="text-center py-10">
+            <p>Cargando información del perfil...</p>
+        </div>
+
+        <div id="not-logged-in" class="hidden text-center py-20 bg-white rounded-lg shadow-sm border border-gray-100">
+            <div class="mb-6 flex justify-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-serif text-brand-dark mb-4">Inicia sesión para ver tu perfil</h2>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">Para acceder a tu historial de pedidos, direcciones y configuración de cuenta, necesitas iniciar sesión.</p>
+            <button onclick="window.openAuthModal && window.openAuthModal()" class="px-8 py-3 bg-brand-dark text-white font-medium tracking-wide uppercase text-sm hover:bg-brand-accent transition-colors rounded">
+                Iniciar Sesión / Registrarse
+            </button>
+        </div>
+
+        <div id="profile-content" class="hidden">
+            <div class="bg-white shadow rounded-lg p-6 mb-8 flex items-center space-x-6">
+                 <div class="relative">
+                    <img id="profile-image" src="" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-2 border-brand-accent/20">
+                    <!-- Placeholder si no hay imagen -->
+                    <div id="profile-placeholder" class="hidden w-24 h-24 rounded-full bg-brand-accent/10 items-center justify-center text-3xl font-serif text-brand-accent">
+                        <span>?</span>
+                    </div>
+                </div>
+                <div>
+                    <h2 id="profile-name" class="text-2xl font-serif text-brand-dark">Nombre de Usuario</h2>
+                    <p id="profile-email" class="text-gray-600">correo@ejemplo.com</p>
+                    <p class="text-sm text-gray-500 mt-1">Miembro desde <span id="profile-joined">...</span></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Sección de Pedidos (Simulada por ahora) -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-xl font-serif text-brand-dark mb-4 border-b pb-2">Mis Pedidos Recientes</h3>
+                    <div class="text-gray-500 italic">
+                        No tienes pedidos recientes.
+                    </div>
+                </div>
+
+                 <!-- Sección de Direcciones (Simulada por ahora) -->
+                 <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-xl font-serif text-brand-dark mb-4 border-b pb-2">Mis Direcciones</h3>
+                    <p class="text-gray-600 mb-2">Dirección Principal:</p>
+                    <p class="text-gray-500 italic">No has guardado ninguna dirección.</p>
+                    <button class="mt-4 text-sm text-brand-accent hover:underline font-medium">Agregar dirección</button>
+                </div>
+            </div>
+             <div class="mt-8 text-right">
+                <button id="logout-btn-profile" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors text-sm font-medium">
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { auth } from '../firebase/client';
+    import { onAuthStateChanged, signOut } from 'firebase/auth';
+
+    const loadingProfile = document.getElementById('loading-profile');
+    const profileContent = document.getElementById('profile-content');
+    const profileName = document.getElementById('profile-name');
+    const profileEmail = document.getElementById('profile-email');
+    const profileJoined = document.getElementById('profile-joined');
+    const profileImage = document.getElementById('profile-image') as HTMLImageElement;
+    const profilePlaceholder = document.getElementById('profile-placeholder');
+    const logoutBtn = document.getElementById('logout-btn-profile');
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Usuario logueado
+            loadingProfile?.classList.add('hidden');
+            profileContent?.classList.remove('hidden');
+
+            if (profileName) profileName.textContent = user.displayName || 'Usuario sin nombre';
+            if (profileEmail) profileEmail.textContent = user.email || '';
+            if (profileJoined) profileJoined.textContent = user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : '-';
+
+            if (user.photoURL) {
+                if (profileImage) profileImage.src = user.photoURL;
+                profileImage?.classList.remove('hidden');
+                profilePlaceholder?.classList.add('hidden');
+            } else {
+                profileImage?.classList.add('hidden'); // Ocultar img vacía
+                profilePlaceholder?.classList.remove('hidden'); // Mostrar placeholder
+                profilePlaceholder?.classList.add('flex');
+                // Poner inicial
+                 if (profilePlaceholder) {
+                    const initial = (user.displayName || user.email || '?')[0].toUpperCase();
+                    const span = profilePlaceholder.querySelector('span');
+                    if (span) span.textContent = initial;
+                 }
+            }
+
+        } else {
+            // No hay usuario, mostrar mensaje
+             loadingProfile?.classList.add('hidden');
+             const notLoggedIn = document.getElementById('not-logged-in');
+             if (notLoggedIn) notLoggedIn.classList.remove('hidden');
+             // Asegurar login view si se abre el modal
+             if (window.openAuthModal) {
+                // Opcional: abrir modal automáticamente si se desea
+             }
+        }
+    });
+
+    logoutBtn?.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Error al cerrar sesión', error);
+        }
+    });
+</script>
