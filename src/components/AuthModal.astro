@@ -42,7 +42,7 @@
                                         <div class="flex items-center justify-between mb-1">
                                             <label for="password" class="block text-xs font-medium text-gray-700 uppercase tracking-wider">Contraseña</label>
                                             <div class="text-xs">
-                                                <a href="#" class="font-medium text-brand-accent hover:text-brand-dark">¿Olvidaste tu contraseña?</a>
+                                                <a href="#" id="forgot-password-link" class="font-medium text-brand-accent hover:text-brand-dark">¿Olvidaste tu contraseña?</a>
                                             </div>
                                         </div>
                                         <input type="password" name="password" id="password" class="block w-full border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-accent sm:text-sm sm:leading-6 bg-gray-50 rounded-lg">
@@ -77,6 +77,36 @@
                                 <p class="mt-8 text-center text-sm text-gray-500">
                                     ¿No tienes cuenta?
                                     <button type="button" id="go-to-register" class="font-semibold leading-6 text-brand-accent hover:text-brand-dark transition-colors">Regístrate ahora</button>
+                                </p>
+                            </div>
+
+                            <!-- Forgot Password View -->
+                            <div id="forgot-password-view" class="hidden">
+                                <h3 class="text-2xl font-serif font-semibold leading-6 text-brand-dark text-center mb-6">Recuperar Contraseña</h3>
+
+                                <p class="text-sm text-gray-500 text-center mb-6">
+                                    Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                                </p>
+
+                                <!-- Mensaje de Feedback -->
+                                <div id="forgot-password-feedback" class="hidden mb-4 p-3 rounded-lg text-sm items-start gap-2 border">
+                                    <span id="forgot-password-message"></span>
+                                </div>
+
+                                <form class="space-y-4">
+                                    <div>
+                                        <label for="reset-email" class="block text-xs font-medium text-gray-700 uppercase tracking-wider mb-1">Email</label>
+                                        <input type="email" name="reset-email" id="reset-email" class="block w-full border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-accent sm:text-sm sm:leading-6 bg-gray-50 rounded-lg" placeholder="tu@email.com">
+                                    </div>
+
+                                    <div class="pt-2">
+                                        <button type="submit" class="flex w-full justify-center bg-brand-dark px-3 py-3 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark uppercase tracking-widest transition-colors rounded-lg">
+                                            Enviar Instrucciones
+                                        </button>
+                                    </div>
+                                </form>
+                                <p class="mt-8 text-center text-sm text-gray-500">
+                                    <button type="button" id="back-to-login-from-forgot" class="font-semibold leading-6 text-brand-accent hover:text-brand-dark transition-colors">Volver a Iniciar Sesión</button>
                                 </p>
                             </div>
 
@@ -133,7 +163,7 @@
 
 <script>
     import { auth, googleProvider, db } from '../firebase/client';
-    import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+    import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth";
     import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
     // Declaración de tipos para extender Window
     declare global {
@@ -149,20 +179,89 @@
     // View switching
     const loginView = document.getElementById('login-view');
     const registerView = document.getElementById('register-view');
+    const forgotPasswordView = document.getElementById('forgot-password-view');
     const goToRegisterBtn = document.getElementById('go-to-register');
     const goToLoginBtn = document.getElementById('go-to-login');
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const backToLoginFromForgotBtn = document.getElementById('back-to-login-from-forgot');
 
-    if (goToRegisterBtn && loginView && registerView) {
+    if (goToRegisterBtn && loginView && registerView && forgotPasswordView) {
         goToRegisterBtn.addEventListener('click', () => {
             loginView.classList.add('hidden');
             registerView.classList.remove('hidden');
+            forgotPasswordView.classList.add('hidden');
         });
     }
 
-    if (goToLoginBtn && loginView && registerView) {
+    if (goToLoginBtn && loginView && registerView && forgotPasswordView) {
         goToLoginBtn.addEventListener('click', () => {
             registerView.classList.add('hidden');
+            forgotPasswordView.classList.add('hidden');
             loginView.classList.remove('hidden');
+        });
+    }
+
+    if (forgotPasswordLink && loginView && forgotPasswordView) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+             e.preventDefault();
+             loginView.classList.add('hidden');
+             forgotPasswordView.classList.remove('hidden');
+        });
+    }
+
+    if (backToLoginFromForgotBtn && loginView && forgotPasswordView) {
+        backToLoginFromForgotBtn.addEventListener('click', () => {
+             forgotPasswordView.classList.add('hidden');
+             loginView.classList.remove('hidden');
+        });
+    }
+
+    // Lógica Recuperar Contraseña
+    const forgotPasswordForm = forgotPasswordView ? forgotPasswordView.querySelector('form') : null;
+
+    const showForgotFeedback = (message: string, isError = true) => {
+        const feedbackDiv = document.getElementById('forgot-password-feedback');
+        const feedbackMsg = document.getElementById('forgot-password-message');
+        if (feedbackDiv && feedbackMsg) {
+            feedbackMsg.textContent = message;
+            feedbackDiv.classList.remove('hidden');
+            feedbackDiv.classList.add('flex');
+
+            if (isError) {
+                feedbackDiv.classList.add('bg-red-50', 'text-red-600', 'border-red-100');
+                feedbackDiv.classList.remove('bg-green-50', 'text-green-600', 'border-green-100');
+            } else {
+                feedbackDiv.classList.add('bg-green-50', 'text-green-600', 'border-green-100');
+                feedbackDiv.classList.remove('bg-red-50', 'text-red-600', 'border-red-100');
+            }
+        }
+    };
+
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('reset-email') as HTMLInputElement;
+
+            if (!emailInput || !emailInput.value) {
+                showForgotFeedback("Por favor, ingresa tu email.");
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, emailInput.value);
+                showForgotFeedback("Se ha enviado un correo para restablecer la contraseña. Revisa tu bandeja de entrada.", false);
+                emailInput.value = ''; // Limpiar campo
+            } catch (error: any) {
+                console.error("Error reset password:", error);
+                let msg = "Error al enviar el correo.";
+                if (error.code === 'auth/user-not-found') {
+                    // Por seguridad, a veces es mejor decir que se envió, pero si quieres ser explícito:
+                    msg = "No se encontró una cuenta con este correo.";
+                } else if (error.code === 'auth/invalid-email') {
+                    msg = "El formato del email no es válido.";
+                }
+                showForgotFeedback(msg, true);
+            }
         });
     }
 
@@ -417,10 +516,23 @@
             document.body.style.overflow = 'hidden';
 
             // Reset to login view when opening
-            if(loginView && registerView) {
+            if(loginView && registerView && forgotPasswordView) {
                 loginView.classList.remove('hidden');
                 registerView.classList.add('hidden');
+                forgotPasswordView.classList.add('hidden');
             }
         }
+    }
+
+    // Auto-open if query param is present
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('login') === 'true') {
+        // Clean URL without refresh
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({path: newUrl}, '', newUrl);
+        // Open modal
+        setTimeout(() => {
+             if (window.openAuthModal) window.openAuthModal();
+        }, 500); // Small delay to ensure everything is loaded
     }
 </script>
