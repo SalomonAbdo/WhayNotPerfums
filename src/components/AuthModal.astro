@@ -24,6 +24,15 @@
                             <!-- Login View -->
                             <div id="login-view" class="block">
                                 <h3 class="text-2xl font-serif font-semibold leading-6 text-brand-dark text-center mb-6" id="modal-title">Iniciar Sesión</h3>
+
+                                <!-- Mensaje de Error -->
+                                <div id="login-error" class="hidden mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm items-start gap-2 border border-red-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 flex-shrink-0 mt-0.5">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span id="login-error-text"></span>
+                                </div>
+
                                 <form class="space-y-4">
                                     <div>
                                         <label for="email" class="block text-xs font-medium text-gray-700 uppercase tracking-wider mb-1">Email</label>
@@ -74,6 +83,15 @@
                             <!-- Register View -->
                             <div id="register-view" class="hidden">
                                 <h3 class="text-2xl font-serif font-semibold leading-6 text-brand-dark text-center mb-6">Crear Cuenta</h3>
+
+                                <!-- Mensaje de Error Registro -->
+                                <div id="register-error" class="hidden mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm items-start gap-2 border border-red-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 flex-shrink-0 mt-0.5">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span id="register-error-text"></span>
+                                </div>
+
                                 <form class="space-y-4">
                                     <div>
                                         <label for="reg-name" class="block text-xs font-medium text-gray-700 uppercase tracking-wider mb-1">Nombre Completo</label>
@@ -114,8 +132,9 @@
 </div>
 
 <script>
-    import { auth, googleProvider } from '../firebase/client';
-    import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+    import { auth, googleProvider, db } from '../firebase/client';
+    import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+    import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
     // Declaración de tipos para extender Window
     declare global {
         interface Window {
@@ -153,9 +172,30 @@
     const passwordError = document.getElementById('password-error');
     const registerForm = registerView ? registerView.querySelector('form') : null;
 
+    // Helper para mostrar errores de registro
+    const showRegisterError = (message: string) => {
+        const errorDiv = document.getElementById('register-error');
+        const errorText = document.getElementById('register-error-text');
+        if (errorDiv && errorText) {
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            errorDiv.classList.add('flex');
+        }
+    };
+
+    // Helper para limpiar errores de registro
+    const clearRegisterError = () => {
+        const errorDiv = document.getElementById('register-error');
+        if (errorDiv && !errorDiv.classList.contains('hidden')) {
+             errorDiv.classList.add('hidden');
+             errorDiv.classList.remove('flex');
+        }
+    };
+
     if (registerForm && regPassword && regPasswordConfirm && passwordError) {
 
         const clearError = () => {
+             clearRegisterError(); // Limpiar el mensaje general también
              if (!passwordError.classList.contains('hidden')) {
                 passwordError.classList.add('hidden');
                 regPassword.classList.remove('ring-2', 'ring-red-500');
@@ -163,8 +203,15 @@
              }
         };
 
+        // Limpiar errores al escribir en otros campos
+        const inputs = registerForm.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', clearError);
+        });
+
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            clearError();
 
             if (regPassword.value !== regPasswordConfirm.value) {
                 passwordError.classList.remove('hidden');
@@ -178,24 +225,58 @@
 
             if(!nameInput || !emailInput) return;
 
+             if (!nameInput.value || !emailInput.value || !regPassword.value) {
+                showRegisterError("Por favor, completa todos los campos.");
+                return;
+            }
+
             try {
-                // Crear usuario en Firebase Auth
+                // 1. Crear usuario en Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, regPassword.value);
                 const user = userCredential.user;
-                console.log("Usuario registrado:", user);
 
-                // TODO: Guardar datos adicionales (nombre) en Firestore
+                // 2. Actualizar el perfil visual del usuario
+                await updateProfile(user, {
+                    displayName: nameInput.value
+                });
 
+                // Datos a guardar
+                const userData = {
+                    uid: user.uid,
+                    name: nameInput.value, // Aseguramos que esto tenga valor
+                    email: emailInput.value,
+                    role: 'customer',
+                    createdAt: serverTimestamp(),
+                    provider: 'password'
+                };
+
+                console.log("Intentando guardar en Firestore:", userData);
+
+                // 3. Guardar datos del usuario en Firestore
+                await setDoc(doc(db, "users", user.uid), userData);
+
+                console.log("Usuario registrado exitosamente y guardado:", user.uid);
+
+                // Limpiar y cerrar
+                registerForm.reset();
                 closeModal();
             } catch (error: any) {
                 console.error("Error al registrar:", error);
 
                 // Manejo de errores común de Firebase
+                let errorMessage = "Error al registrar el usuario.";
                 if(error.code === 'auth/email-already-in-use') {
-                    alert("El correo electrónico ya está en uso.");
+                    errorMessage = "El correo electrónico ya está en uso.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "La contraseña es muy débil (mínimo 6 caracteres).";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "El formato del email no es válido.";
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    errorMessage = "El registro con email y contraseña no está habilitado en Firebase. Contacta al administrador.";
                 } else {
-                     alert("Error al registrar: " + error.message);
+                     errorMessage = "Error: " + error.message;
                 }
+                showRegisterError(errorMessage);
             }
         });
 
@@ -203,19 +284,60 @@
         regPasswordConfirm.addEventListener('input', clearError);
     }
 
+    // Helper para mostrar errores
+    const showLoginError = (message: string) => {
+        const errorDiv = document.getElementById('login-error');
+        const errorText = document.getElementById('login-error-text');
+        if (errorDiv && errorText) {
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            errorDiv.classList.add('flex');
+        }
+    };
+
+    // Helper para limpiar errores
+    const clearLoginError = () => {
+        const errorDiv = document.getElementById('login-error');
+        if (errorDiv && !errorDiv.classList.contains('hidden')) {
+             errorDiv.classList.add('hidden');
+             errorDiv.classList.remove('flex');
+        }
+    };
+
     // Lógica Login con Google
     const googleLoginBtn = document.getElementById('google-login-btn');
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', async () => {
+            clearLoginError();
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
+
+                // Verificar si existe en Firestore, si no, crearlo (Primer login con Google)
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (!userDoc.exists()) {
+                    await setDoc(userDocRef, {
+                        uid: user.uid,
+                        name: user.displayName,
+                        email: user.email,
+                        role: 'customer',
+                        createdAt: serverTimestamp(),
+                        provider: 'google'
+                    });
+                }
+
                 console.log("Usuario logueado con Google:", user);
                 // Aquí podrías guardar el usuario en Firestore si es la primera vez
                 closeModal();
             } catch (error: any) {
                 console.error("Error al iniciar sesión con Google:", error);
-                alert("Hubo un error al iniciar sesión con Google: " + error.message);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    // No mostrar error si el usuario cerró la ventana
+                    return;
+                }
+                showLoginError("No se pudo iniciar sesión con Google. Inténtalo de nuevo.");
             }
         });
     }
@@ -223,12 +345,26 @@
     // Lógica Login con Email y Contraseña (para completar el modal)
     const loginForm = loginView ? loginView.querySelector('form') : null;
     if (loginForm) {
+
+        // Limpiar errores al escribir
+        const inputs = loginForm.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', clearLoginError);
+        });
+
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            clearLoginError();
+
             const emailInput = document.getElementById('email') as HTMLInputElement;
             const passwordInput = document.getElementById('password') as HTMLInputElement;
 
             if (!emailInput || !passwordInput) return;
+
+            if (!emailInput.value || !passwordInput.value) {
+                showLoginError("Por favor, ingresa tu email y contraseña.");
+                return;
+            }
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
@@ -236,7 +372,17 @@
                 closeModal();
             } catch (error: any) {
                 console.error("Error Login:", error);
-                alert("Error al iniciar sesión: " + error.message);
+                let errorMessage = "Ocurrió un error al iniciar sesión.";
+
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Email o contraseña incorrectos.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "El formato del email no es válido.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = "Demasiados intentos fallidos. Por favor intenta más tarde.";
+                }
+
+                showLoginError(errorMessage);
             }
         });
     }
