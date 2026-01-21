@@ -89,8 +89,9 @@
                                 </p>
 
                                 <!-- Mensaje de Feedback -->
-                                <div id="forgot-password-feedback" class="hidden mb-4 p-3 rounded-lg text-sm items-start gap-2 border">
+                                <div id="forgot-password-feedback" class="hidden mb-4 p-3 rounded-lg text-sm flex flex-col items-start gap-2 border">
                                     <span id="forgot-password-message"></span>
+                                    <div id="forgot-password-actions"></div>
                                 </div>
 
                                 <form class="space-y-4">
@@ -164,7 +165,7 @@
 <script>
     import { auth, googleProvider, db } from '../firebase/client';
     import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth";
-    import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+    import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
     // Declaración de tipos para extender Window
     declare global {
         interface Window {
@@ -219,9 +220,11 @@
     // Lógica Recuperar Contraseña
     const forgotPasswordForm = forgotPasswordView ? forgotPasswordView.querySelector('form') : null;
 
-    const showForgotFeedback = (message: string, isError = true) => {
+    const showForgotFeedback = (message: string, isError = true, actionHtml: string | null = null) => {
         const feedbackDiv = document.getElementById('forgot-password-feedback');
         const feedbackMsg = document.getElementById('forgot-password-message');
+        const feedbackActions = document.getElementById('forgot-password-actions');
+
         if (feedbackDiv && feedbackMsg) {
             feedbackMsg.textContent = message;
             feedbackDiv.classList.remove('hidden');
@@ -233,6 +236,16 @@
             } else {
                 feedbackDiv.classList.add('bg-green-50', 'text-green-600', 'border-green-100');
                 feedbackDiv.classList.remove('bg-red-50', 'text-red-600', 'border-red-100');
+            }
+
+            if (feedbackActions) {
+                if (actionHtml) {
+                    feedbackActions.innerHTML = actionHtml;
+                    feedbackActions.classList.remove('hidden');
+                } else {
+                    feedbackActions.innerHTML = '';
+                    feedbackActions.classList.add('hidden');
+                }
             }
         }
     };
@@ -248,15 +261,39 @@
             }
 
             try {
+                // Verificar si existe en Firestore
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("email", "==", emailInput.value));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                     const actionHtml = `<button type="button" id="btn-switch-register-error" class="font-bold underline hover:text-red-800 transition-colors">Crear cuenta nueva</button>`;
+                     showForgotFeedback("Este correo no está registrado.", true, actionHtml);
+
+                     setTimeout(() => {
+                         const btn = document.getElementById('btn-switch-register-error');
+                         if (btn && forgotPasswordView && registerView) {
+                             btn.addEventListener('click', () => {
+                                 forgotPasswordView.classList.add('hidden');
+                                 registerView.classList.remove('hidden');
+
+                                 const regEmail = document.getElementById('reg-email') as HTMLInputElement;
+                                 if(regEmail) regEmail.value = emailInput.value;
+                             });
+                         }
+                     }, 0);
+                     return;
+                }
+
                 await sendPasswordResetEmail(auth, emailInput.value);
                 showForgotFeedback("Se ha enviado un correo para restablecer la contraseña. Revisa tu bandeja de entrada.", false);
                 emailInput.value = ''; // Limpiar campo
             } catch (error: any) {
                 console.error("Error reset password:", error);
                 let msg = "Error al enviar el correo.";
+
                 if (error.code === 'auth/user-not-found') {
-                    // Por seguridad, a veces es mejor decir que se envió, pero si quieres ser explícito:
-                    msg = "No se encontró una cuenta con este correo.";
+                     msg = "No se encontró una cuenta con este correo.";
                 } else if (error.code === 'auth/invalid-email') {
                     msg = "El formato del email no es válido.";
                 }
