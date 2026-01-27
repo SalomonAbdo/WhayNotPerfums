@@ -1,64 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ProductCard from '../components/ProductCard.astro';
-
-// Datos simulados (mock) de perfumes para hombre
-const products = [
-  {
-    id: 'h1',
-    brand: 'Dior',
-    name: 'Sauvage Elixir',
-    price: 145990,
-    image: 'https://images.unsplash.com/photo-1541643600914-7898d7d22b0b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: true,
-    stock: 10
-  },
-  {
-    id: 'h2',
-    brand: 'Tom Ford',
-    name: 'Oud Wood',
-    price: 289990,
-    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false,
-    stock: 0
-  },
-  {
-    id: 'h3',
-    brand: 'Acqua di Parma',
-    name: 'Colonia Essenza',
-    price: 112990,
-    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false,
-    stock: 5
-  },
-  {
-    id: 'h4',
-    brand: 'Hermès',
-    name: 'Terre d\'Hermès',
-    price: 105990,
-    image: 'https://images.unsplash.com/photo-1616999662136-120536d3967d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false,
-    stock: 8
-  },
-  {
-    id: 'h5',
-    brand: 'Creed',
-    name: 'Aventus',
-    price: 345990,
-    image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: true,
-    stock: 3
-  },
-  {
-    id: 'h6',
-    brand: 'Giorgio Armani',
-    name: 'Acqua di Giò Profondo',
-    price: 98990,
-    image: 'https://images.unsplash.com/photo-1592864619736-2395d8209861?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    isNew: false,
-    stock: 7
-  },
-];
 ---
 
 <Layout title="Perfumes para Hombre | Why Not Perfums">
@@ -75,10 +16,10 @@ const products = [
         </div>
     </div>
 
-    <!-- Filtros y Orden (Simplificado para esta versión) -->
+    <!-- Filtros y Orden -->
     <div class="border-b border-gray-100 sticky top-20 z-40 bg-white/95 backdrop-blur-sm">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <span class="text-sm text-gray-500 font-sans">{products.length} Resultados</span>
+            <span id="products-count" class="text-sm text-gray-500 font-sans">Cargando...</span>
 
             <div class="flex gap-6 text-sm font-sans">
                  <button class="flex items-center gap-2 text-brand-dark hover:text-brand-accent transition-colors">
@@ -99,37 +40,173 @@ const products = [
 
     <!-- Grid de Productos -->
     <main class="max-w-7xl mx-auto px-6 py-12 md:py-20">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-            {products.map((product) => (
-                <ProductCard
-                    id={product.id}
-                    brand={product.brand}
-                    name={product.name}
-                    price={product.price}
-                    image={product.image}
-                    isNew={product.isNew}
-                    stock={product.stock}
-                />
-            ))}
-        </div>
-
-        <!-- Paginación -->
-        <div class="mt-20 flex justify-center">
-             <nav class="flex items-center gap-1" aria-label="Pagination">
-                <button class="p-2 text-gray-400 hover:text-brand-dark transition-colors disabled:opacity-50">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-                <button class="px-4 py-2 text-sm font-medium text-white bg-brand-dark">1</button>
-                <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-brand-dark transition-colors">2</button>
-                <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-brand-dark transition-colors">3</button>
-                <button class="p-2 text-gray-400 hover:text-brand-dark transition-colors">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            </nav>
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 min-h-[400px]">
+            <div class="col-span-full flex justify-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-dark"></div>
+            </div>
         </div>
     </main>
 </Layout>
+
+<script>
+  import { db, storage } from "../firebase/client";
+  import { collection, query, where, onSnapshot } from "firebase/firestore";
+  import { ref, getDownloadURL } from "firebase/storage";
+  import { addToCart } from "../store/cartStore";
+
+  const container = document.getElementById('products-grid');
+  const countSpan = document.getElementById('products-count');
+
+  // Mapa para guardar los productos en memoria y recuperarlos al hacer click
+  let productsMap = new Map();
+
+  const q = query(collection(db, "products"), where("categoria", "==", "hombre"));
+
+  // Delegación de eventos para el botón 'Añadir'
+  if (container) {
+    container.addEventListener('click', (e: any) => {
+        const btn = e.target.closest('.add-to-cart-btn');
+        if (btn) {
+            const id = btn.dataset.id;
+            const product = productsMap.get(id);
+            if (product) {
+                // Mapear campos de Firestore a estructura del carrito
+                addToCart({
+                    id: product.id,
+                    name: product.nombre || product.name,
+                    price: product.precio,
+                    image: product.image,
+                    quantity: 1
+                });
+
+                // Feedback visual simple (el botón cambia texto temporalmente)
+                const originalText = btn.innerText;
+                btn.innerText = "¡Añadido!";
+                btn.classList.add('bg-green-600', 'text-white');
+                btn.classList.remove('bg-white', 'text-brand-dark');
+
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('bg-green-600', 'text-white');
+                    btn.classList.add('bg-white', 'text-brand-dark');
+                }, 1500);
+            }
+        }
+    });
+  }
+
+  const formatter = new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP'
+  });
+
+  onSnapshot(q, async (snapshot) => {
+    // Actualizar contador
+    if (countSpan) countSpan.textContent = `${snapshot.size} Resultados`;
+
+    if (snapshot.empty) {
+        if (container) container.innerHTML = '<p class="text-center col-span-full text-brand-muted">No se encontraron productos en la categoría "hombre".</p>';
+        return;
+    }
+
+    try {
+        const productsPromises = snapshot.docs.map(async (docSnap) => {
+            const data = docSnap.data();
+            let imageUrl = data.imagen_url;
+
+            // Resolver URL de Storage si es gs://
+            if (imageUrl && imageUrl.startsWith('gs://')) {
+                try {
+                    const imgRef = ref(storage, imageUrl);
+                    imageUrl = await getDownloadURL(imgRef);
+                } catch (e) {
+                    console.error(`Error loading image for ${docSnap.id}:`, e);
+                    imageUrl = 'https://placehold.co/400x500?text=Error+Imagen';
+                }
+            }
+
+            return {
+                id: docSnap.id,
+                ...data,
+                image: imageUrl || 'https://placehold.co/400x500?text=Sin+Imagen'
+            };
+        });
+
+        const products = await Promise.all(productsPromises);
+
+        productsMap.clear();
+        products.forEach((p: any) => productsMap.set(p.id, p));
+
+        if (container) {
+            container.innerHTML = products.map((product: any) => {
+                const isNew = product.isNew;
+                const stock = product.stock;
+                const brand = product.brand || 'Why Not?';
+                const name = product.nombre || product.name || 'Sin Nombre';
+                const price = product.precio !== undefined ? product.precio : 0;
+                const formattedPrice = formatter.format(price);
+
+                let badgeHTML = '';
+                if (isNew) {
+                    badgeHTML = '<span class="absolute top-4 right-4 z-10 text-brand-dark text-[10px] uppercase font-bold tracking-widest">Nuevo</span>';
+                }
+
+                if (stock !== undefined) {
+                    if (stock <= 0) {
+                        badgeHTML += '<span class="absolute top-4 left-4 z-10 bg-gray-500 text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1">Agotado</span>';
+                    } else if (stock < 5) {
+                        badgeHTML += '<span class="absolute top-4 left-4 z-10 bg-red-400 text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1">¡Últimos!</span>';
+                    }
+                }
+
+                return `
+                <div class="group relative">
+                    ${badgeHTML}
+                    
+                    <div class="relative overflow-hidden aspect-[4/5] bg-gray-100 mb-4 cursor-pointer">
+                        <img
+                            src="${product.image}"
+                            alt="${name}"
+                            class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                            loading="lazy"
+                        />
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+                            <button 
+                                data-id="${product.id}"
+                                class="add-to-cart-btn bg-white text-brand-dark px-6 py-3 text-xs font-bold tracking-widest uppercase hover:bg-brand-accent hover:text-white transition-colors shadow-lg translate-y-4 group-hover:translate-y-0 duration-300 cursor-pointer">
+                                Añadir
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center space-y-1">
+                        <h3 class="text-xs text-brand-muted uppercase tracking-widest">${brand}</h3>
+                        <h2 class="font-serif text-lg text-brand-dark group-hover:text-brand-accent transition-colors">
+                            <a href="/producto/${product.id}">
+                                <span aria-hidden="true" class="absolute inset-0"></span>
+                                ${name}
+                            </a>
+                        </h2>
+                        <p class="font-medium text-brand-dark mt-2 text-sm">${formattedPrice}</p>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+    } catch (renderError) {
+        console.error("Error renderizando productos:", renderError);
+        if (container) container.innerHTML = `<p class="text-center col-span-full text-red-500">Error mostrando productos. Revisa la consola.</p>`;
+    }
+  }, (error) => {
+      console.error("Error escuchando productos:", error);
+      if (container) {
+          let msg = "Error cargando productos.";
+          if (error.code === 'permission-denied') msg += " Permiso denegado. Revisa las reglas de Firestore.";
+          container.innerHTML = `<div class="col-span-full text-center p-4 bg-red-50 text-red-600 rounded">
+            <p class="font-bold">${msg}</p>
+            <p class="text-sm mt-2 font-mono">${error.message}</p>
+          </div>`;
+      }
+      if (countSpan) countSpan.textContent = "Error";
+  });
+</script>

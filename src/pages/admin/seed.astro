@@ -1,1 +1,71 @@
+---
+// seed.astro
+// Visita esta página /admin/seed una vez para sembrar los datos si la DB está vacía.
+import Layout from '../../layouts/Layout.astro';
+---
 
+<Layout title="Seed DB">
+    <div class="container mx-auto py-20 text-center">
+        <h1 class="text-3xl mb-4">Inicializador de Base de Datos</h1>
+        <p class="mb-8">Esta página te ayudará a insertar el producto de prueba para verificar que todo funcione.</p>
+
+        <button id="seed-btn" class="bg-brand-dark text-white px-6 py-3 rounded hover:bg-black transition cursor-pointer">
+            Insertar Producto de Prueba
+        </button>
+
+        <div id="status" class="mt-8 p-4 border rounded hidden"></div>
+    </div>
+</Layout>
+
+<script>
+    import { db } from "../../firebase/client";
+    import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+
+    const btn = document.getElementById('seed-btn');
+    const status = document.getElementById('status');
+
+    btn?.addEventListener('click', async () => {
+        if (!status) return;
+        status.classList.remove('hidden');
+        status.innerHTML = "Verificando existencia...";
+        status.className = "mt-8 p-4 border rounded bg-yellow-50 text-yellow-800";
+
+        try {
+            // Verificar si ya existe para no duplicar
+            const q = query(collection(db, "products"), where("nombre", "==", "Producto Prueba Gemini"));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                status.innerHTML = "El producto ya existe en la base de datos. No es necesario insertarlo de nuevo. Ve a <a href='/hombre' class='underline font-bold'>/hombre</a> para verlo.";
+                status.className = "mt-8 p-4 border rounded bg-blue-50 text-blue-800";
+                return;
+            }
+
+            status.innerHTML = "Insertando producto...";
+
+            await addDoc(collection(db, "products"), {
+                categoria: "hombre",
+                descripcion: "Fragancia exclusiva generada por IA",
+                imagen_url: "gs://wnpp-991c5.firebasestorage.app/Gemini_Generated_Image_pckeb5pckeb5pcke.webp",
+                nombre: "212 VIP Black Carolina Herrera EDP Hombre",
+                precio: 114990,
+                stock: 5,
+                brand: "Gemini",
+                isNew: true,
+                createdAt: new Date()
+            });
+
+            status.innerHTML = "<b>¡Éxito!</b> Producto insertado correctamente. Ahora ve a <a href='/hombre' class='underline font-bold'>/hombre</a> para verlo.";
+            status.className = "mt-8 p-4 border rounded bg-green-50 text-green-800";
+
+        } catch (error: any) {
+            console.error(error);
+            let msg = error.message;
+            if (error.code === 'permission-denied') {
+                msg = "Permiso denegado. Tus reglas de Firestore no permiten escritura pública. Debes agregar el producto desde la consola de Firebase o cambiar las reglas temporalmente.";
+            }
+            status.innerHTML = `<b>Error:</b> ${msg}`;
+            status.className = "mt-8 p-4 border rounded bg-red-50 text-red-800";
+        }
+    });
+</script>

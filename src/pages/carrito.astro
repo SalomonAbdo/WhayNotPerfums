@@ -1,0 +1,181 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Mi Carrito | Why Not Perfums">
+  <div class="bg-gray-50 min-h-screen py-20 md:py-32">
+    <div class="max-w-7xl mx-auto px-6">
+      <h1 class="font-serif text-4xl text-brand-dark mb-12">Tu Carrito de Compras</h1>
+
+      <div id="cart-container" class="grid grid-cols-1 lg:grid-cols-3 gap-12" style="display: none;">
+
+        <!-- Lista de Items -->
+        <div class="lg:col-span-2 space-y-6" id="cart-items-list">
+            <!-- Items injectados por JS -->
+        </div>
+
+        <!-- Resumen -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-8 shadow-sm rounded-lg sticky top-24">
+                <h2 class="font-serif text-2xl mb-6 text-brand-dark">Resumen</h2>
+
+                <div class="space-y-4 text-sm text-gray-600 font-sans border-b border-gray-100 pb-6">
+                    <div class="flex justify-between">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal" class="font-medium">$0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Envío</span>
+                        <span class="text-green-600 font-medium">Gratis</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center py-6 text-lg font-bold text-brand-dark">
+                    <span>Total</span>
+                    <span id="cart-total">$0</span>
+                </div>
+
+                <button id="checkout-btn" class="w-full bg-brand-dark text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-brand-accent transition-colors shadow-lg hover:shadow-xl cursor-pointer">
+                    Pagar con Mercado Pago
+                </button>
+
+                <p class="text-xs text-center text-gray-400 mt-4">Transacciones seguras y encriptadas.</p>
+            </div>
+        </div>
+      </div>
+
+      <!-- Estado Vacío -->
+      <div id="empty-cart" class="flex flex-col items-center justify-center py-20 text-center" style="display: none;">
+        <div class="text-gray-300 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-32 h-32">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+        </div>
+        <h2 class="font-serif text-2xl text-brand-dark mb-4">Tu carrito está vacío</h2>
+        <p class="text-gray-500 mb-8 max-w-md">Parece que aún no has añadido ninguna fragancia exclusiva a tu colección.</p>
+        <a href="/hombre" class="bg-brand-dark text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-brand-accent transition-colors">
+            Explorar Colección
+        </a>
+      </div>
+
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { cartItems, removeFromCart, updateQuantity } from '../store/cartStore';
+
+  const container = document.getElementById('cart-container');
+  const emptyState = document.getElementById('empty-cart');
+  const itemsList = document.getElementById('cart-items-list');
+  const subtotalEl = document.getElementById('cart-subtotal');
+  const totalEl = document.getElementById('cart-total');
+  const checkoutBtn = document.getElementById('checkout-btn');
+
+  const formatter = new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP'
+  });
+
+  // Renderizar carrito
+  cartItems.subscribe(items => {
+    if (!container || !emptyState || !itemsList) return;
+
+    if (items.length === 0) {
+        container.style.display = 'none';
+        emptyState.style.display = 'flex';
+        return;
+    }
+
+    container.style.display = 'grid';
+    emptyState.style.display = 'none';
+
+    // Calcular totales
+    const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    if(subtotalEl) subtotalEl.textContent = formatter.format(total);
+    if(totalEl) totalEl.textContent = formatter.format(total);
+
+    // Pintar lista
+    itemsList.innerHTML = items.map(item => `
+        <div class="flex gap-6 p-6 bg-white rounded-lg shadow-sm">
+            <div class="w-24 h-24 flex-shrink-0 bg-gray-100 overflow-hidden rounded-md border border-gray-200">
+                <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-serif text-lg text-brand-dark">${item.name}</h3>
+                    <p class="text-xs text-gray-500 font-sans uppercase tracking-widest mt-1">Why Not? Exclusive</p>
+                </div>
+                <div class="flex justify-between items-end mt-4">
+                     <div class="flex items-center border border-gray-200 rounded">
+                        <button class="qty-btn px-3 py-1 hover:bg-gray-50 text-gray-600" data-action="decrease" data-id="${item.id}">-</button>
+                        <span class="px-2 text-sm font-medium text-brand-dark">${item.quantity}</span>
+                        <button class="qty-btn px-3 py-1 hover:bg-gray-50 text-gray-600" data-action="increase" data-id="${item.id}">+</button>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-brand-dark">${formatter.format(item.price * item.quantity)}</p>
+                        <button class="remove-btn text-xs text-red-400 hover:text-red-600 mt-1 uppercase tracking-wider font-bold" data-id="${item.id}">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+  });
+
+  // Event Delegation para botones de + - y eliminar
+  itemsList?.addEventListener('click', (e) => {
+    const target = e.target;
+    // @ts-ignore
+    const id = target.dataset.id;
+    // @ts-ignore
+    const action = target.dataset.action;
+
+    if (!id) return;
+
+    if (action === 'increase') {
+        const item = cartItems.get().find(i => i.id === id);
+        if (item) updateQuantity(id, item.quantity + 1);
+    } else if (action === 'decrease') {
+        const item = cartItems.get().find(i => i.id === id);
+        if (item && item.quantity > 1) {
+            updateQuantity(id, item.quantity - 1);
+        } else {
+             // Opcional: remover si baja de 1? Por ahora no.
+        }
+    } else if (target.classList.contains('remove-btn')) {
+        removeFromCart(id);
+    }
+  });
+
+  // Checkout con Mercado Pago
+  checkoutBtn?.addEventListener('click', async () => {
+    checkoutBtn.innerText = "Procesando...";
+    checkoutBtn.disabled = true;
+
+    try {
+        const items = cartItems.get();
+        const response = await fetch('/api/create-preference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ items })
+        });
+
+        const data = await response.json();
+
+        if (data.init_point) {
+            window.location.href = data.init_point;
+        } else {
+            alert('Error al crear preferencia de pago: ' + (data.error || 'Desconocido'));
+            checkoutBtn.innerText = "Pagar con Mercado Pago";
+            checkoutBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Error conectando con el servidor de pagos');
+        checkoutBtn.innerText = "Pagar con Mercado Pago";
+        checkoutBtn.disabled = false;
+    }
+  });
+</script>

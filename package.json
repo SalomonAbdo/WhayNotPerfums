@@ -11,9 +11,12 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "@fontsource/playfair-display": "^5.2.8",
+    "@nanostores/persistent": "^1.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "astro": "^5.16.7",
     "firebase": "^12.7.0",
+    "mercadopago": "^2.12.0",
+    "nanostores": "^1.1.0",
     "tailwindcss": "^4.1.18"
   }
 }

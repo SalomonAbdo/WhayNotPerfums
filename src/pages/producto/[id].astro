@@ -1,0 +1,219 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { db, storage } from '../../firebase/client';
+import { collection, getDocs, doc, onSnapshot } from 'firebase/firestore';
+import { ref } from 'firebase/storage';
+
+interface Product {
+    id: string;
+    nombre: string;
+    categoria: string;
+    precio: number;
+    descripcion: string;
+    imagen_url: string;
+    stock: number;
+    [key: string]: any;
+}
+
+export async function getStaticPaths() {
+  const querySnapshot = await getDocs(collection(db, "products"));
+
+  // Para cada producto, intentamos resolver la imagen en tiempo de compilación si es posible
+  // Nota: Esto puede hacer el build lento si hay muchas imágenes.
+  const paths = await Promise.all(querySnapshot.docs.map(async (docSnap) => {
+    const data = docSnap.data();
+    let imageUrl = data.imagen_url;
+
+    // Intento básico de resolver URL en build time (puede fallar si falta auth)
+    // Si falla, pasamos la original y el cliente la resolverá.
+    if (imageUrl && imageUrl.startsWith('gs://')) {
+        try {
+             // Nota: En build 'authentication' de cliente firebase puede no estar disponible
+             // Por seguridad, si falla, usamos placeholder temporal
+             // const imgRef = ref(storage, imageUrl);
+             // imageUrl = await getDownloadURL(imgRef); // Comentado para evitar bloqueos en build si no hay auth
+        } catch (e) {
+            console.log(`Build time image resolve skipped for ${docSnap.id}`);
+        }
+    }
+
+    return {
+      params: { id: docSnap.id },
+      props: {
+          initialData: { id: docSnap.id, ...data, imagen_url: imageUrl } as Product
+      }
+    };
+  }));
+
+  return paths;
+}
+
+interface Props {
+    initialData: Product;
+}
+
+const { initialData } = Astro.props;
+const { id } = Astro.params;
+
+// Formateador inicial
+const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0
+    }).format(price || 0);
+};
+---
+
+<Layout title={initialData.nombre || 'Producto'}>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-32" id="product-container" data-id={id} data-initial-image={initialData.imagen_url}>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <!-- Imagen del Producto -->
+            <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden relative shadow-lg group">
+                <img
+                    id="product-image"
+                    src={initialData.imagen_url && !initialData.imagen_url.startsWith('gs://') ? initialData.imagen_url : 'https://placehold.co/600x600?text=Cargando...'}
+                    alt={initialData.nombre}
+                    class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                    transition:name={`image-${initialData.id}`}
+                />
+            </div>
+
+            <!-- Detalles del Producto -->
+            <div class="flex flex-col justify-center space-y-6">
+                <div>
+                    <span id="product-category" class="text-sm font-bold tracking-widest uppercase text-brand-accent">{initialData.categoria}</span>
+                    <h1 id="product-name" class="text-4xl font-serif text-brand-dark mt-2 mb-4">{initialData.nombre}</h1>
+                    <p id="product-price" class="text-2xl font-light text-gray-900">{formatPrice(initialData.precio)}</p>
+                </div>
+
+                <div class="prose prose-sm text-gray-500">
+                    <p id="product-description">{initialData.descripcion}</p>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <div id="action-container" class="flex items-center space-x-4">
+                        <!-- Se rellenará dinámicamente o con datos iniciales -->
+                         <div class="animate-pulse h-10 w-32 bg-gray-200 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { db, storage } from '../../firebase/client';
+    import { doc, onSnapshot } from 'firebase/firestore';
+    import { ref, getDownloadURL } from 'firebase/storage';
+    import { addToCart } from '../../store/cartStore';
+
+    const container = document.getElementById('product-container');
+    const productId = container?.dataset.id;
+    let currentProductData = null;
+
+    // Elementos DOM
+    const els = {
+        image: document.getElementById('product-image') as HTMLImageElement,
+        category: document.getElementById('product-category'),
+        name: document.getElementById('product-name'),
+        price: document.getElementById('product-price'),
+        desc: document.getElementById('product-description'),
+        actions: document.getElementById('action-container')
+    };
+
+    const formatter = new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0
+    });
+
+    if (productId) {
+        // Suscripción tiempo real
+        const unsubscribe = onSnapshot(doc(db, "products", productId), async (docSnap) => {
+            if (!docSnap.exists()) {
+                // Manejar producto borrado
+                if(container) container.innerHTML = '<p class="text-center text-red-500">Este producto ya no está disponible.</p>';
+                return;
+            }
+
+            const data = docSnap.data();
+            currentProductData = { id: docSnap.id, ...data };
+
+            // Actualizar UI Texto
+            if(els.category) els.category.textContent = data.categoria || '';
+            if(els.name) els.name.textContent = data.nombre || '';
+            if(els.price) els.price.textContent = formatter.format(data.precio || 0);
+            if(els.desc) els.desc.textContent = data.descripcion || '';
+
+            // Imagen (solo si cambia o es la primera carga gs://)
+            let imageUrl = data.imagen_url;
+            if (imageUrl && imageUrl.startsWith('gs://')) {
+                try {
+                    const imgRef = ref(storage, imageUrl);
+                    imageUrl = await getDownloadURL(imgRef);
+                } catch (e) {
+                    console.error("Error resolving image url in client:", e);
+                    imageUrl = 'https://placehold.co/600x600?text=Error+Imagen';
+                }
+            } else if (!imageUrl) {
+                 imageUrl = 'https://placehold.co/600x600?text=Sin+Imagen';
+            }
+
+            if (els.image && els.image.src !== imageUrl) {
+                els.image.src = imageUrl;
+            }
+            // Guardar url resuelta para el carrito
+            currentProductData.image = imageUrl;
+
+            // Lógica de Stock y Botón
+            if (els.actions) {
+                const stock = data.stock !== undefined ? data.stock : 0;
+                const inStock = stock > 0;
+
+                let stockBadge = '';
+                if(inStock) {
+                    stockBadge = `<span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">En Stock (${stock})</span>`;
+                } else {
+                    stockBadge = `<span class="px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">Agotado</span>`;
+                }
+
+                let btnHtml = '';
+                if(inStock) {
+                    btnHtml = `
+                    <button 
+                        id="real-add-btn"
+                        class="flex-1 bg-brand-dark text-white py-4 px-8 hover:bg-brand-accent transition-colors uppercase tracking-widest text-sm font-bold shadow-md hover:shadow-xl cursor-pointer"
+                    >
+                        Agregar al Carrito
+                    </button>`;
+                }
+
+                els.actions.innerHTML = `${stockBadge} ${btnHtml}`;
+
+                // Re-bind evento click
+                const btn = document.getElementById('real-add-btn');
+                btn?.addEventListener('click', () => {
+                    addToCart({
+                        id: currentProductData.id,
+                        name: currentProductData.nombre,
+                        price: currentProductData.precio,
+                        image: currentProductData.image,
+                        quantity: 1
+                    });
+                     // Feedback visual simple
+                     const originalText = btn.innerText;
+                     btn.innerText = "¡Agregado!";
+                     btn.classList.add('bg-green-600');
+                     setTimeout(() => {
+                         btn.innerText = originalText;
+                         btn.classList.remove('bg-green-600');
+                     }, 2000);
+                });
+            }
+
+        }, (error) => {
+            console.error("Error en snapshot producto:", error);
+        });
+    }
+</script>

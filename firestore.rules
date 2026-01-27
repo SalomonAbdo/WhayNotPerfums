@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Reglas para la colección de productos
+    match /products/{product} {
+      // Permitir que cualquiera lea los productos (necesario para la tienda pública)
+      allow read: if true;
+
+      // Permitir escritura temporalmente para poder ejecutar el seed.
+      // IMPORTANTE: Después de cargar los datos, cambia esto a 'if request.auth != null' o 'if false'
+      allow write: if true;
+    }
+
+    // Reglas por defecto para otras colecciones (cerradas por seguridad)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
