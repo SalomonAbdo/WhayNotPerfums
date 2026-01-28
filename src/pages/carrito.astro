@@ -63,7 +63,7 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { cartItems, removeFromCart, updateQuantity } from '../store/cartStore';
+  import { cartItems, removeFromCart, updateItemQuantity } from '../store/cartStore';
 
   const container = document.getElementById('cart-container');
   const emptyState = document.getElementById('empty-cart');
@@ -123,7 +123,7 @@ import Layout from '../layouts/Layout.astro';
   });
 
   // Event Delegation para botones de + - y eliminar
-  itemsList?.addEventListener('click', (e) => {
+  itemsList?.addEventListener('click', async (e) => {
     const target = e.target;
     // @ts-ignore
     const id = target.dataset.id;
@@ -134,11 +134,23 @@ import Layout from '../layouts/Layout.astro';
 
     if (action === 'increase') {
         const item = cartItems.get().find(i => i.id === id);
-        if (item) updateQuantity(id, item.quantity + 1);
+        if (item) {
+             // Deshabilitar botón temporalmente para evitar doble click
+             target.disabled = true;
+             const result = await updateItemQuantity(id, item.quantity + 1);
+             target.disabled = false;
+
+             if (!result.success) {
+                 if (window.showToast) window.showToast(result.error, 'error');
+                 else alert(result.error);
+             }
+        }
     } else if (action === 'decrease') {
         const item = cartItems.get().find(i => i.id === id);
         if (item && item.quantity > 1) {
-            updateQuantity(id, item.quantity - 1);
+            target.disabled = true;
+            await updateItemQuantity(id, item.quantity - 1);
+            target.disabled = false;
         } else {
              // Opcional: remover si baja de 1? Por ahora no.
         }

@@ -106,11 +106,11 @@ const formatPrice = (price: number) => {
     import { db, storage } from '../../firebase/client';
     import { doc, onSnapshot } from 'firebase/firestore';
     import { ref, getDownloadURL } from 'firebase/storage';
-    import { addToCart } from '../../store/cartStore';
+    import { addItemToCart } from '../../store/cartStore';
 
     const container = document.getElementById('product-container');
     const productId = container?.dataset.id;
-    let currentProductData = null;
+    let currentProductData: any = null;
 
     // Elementos DOM
     const els = {
@@ -130,7 +130,7 @@ const formatPrice = (price: number) => {
 
     if (productId) {
         // Suscripción tiempo real
-        const unsubscribe = onSnapshot(doc(db, "products", productId), async (docSnap) => {
+        onSnapshot(doc(db, "products", productId), async (docSnap) => {
             if (!docSnap.exists()) {
                 // Manejar producto borrado
                 if(container) container.innerHTML = '<p class="text-center text-red-500">Este producto ya no está disponible.</p>';
@@ -193,22 +193,41 @@ const formatPrice = (price: number) => {
 
                 // Re-bind evento click
                 const btn = document.getElementById('real-add-btn');
-                btn?.addEventListener('click', () => {
-                    addToCart({
+                btn?.addEventListener('click', async () => {
+                    if (!btn) return;
+                    // @ts-ignore
+                    btn.disabled = true;
+                    const originalText = btn.innerText;
+                    btn.innerText = "Comprobando...";
+
+                    const result = await addItemToCart({
                         id: currentProductData.id,
                         name: currentProductData.nombre,
                         price: currentProductData.precio,
                         image: currentProductData.image,
                         quantity: 1
                     });
-                     // Feedback visual simple
-                     const originalText = btn.innerText;
-                     btn.innerText = "¡Agregado!";
-                     btn.classList.add('bg-green-600');
-                     setTimeout(() => {
-                         btn.innerText = originalText;
-                         btn.classList.remove('bg-green-600');
-                     }, 2000);
+
+                    if (result.success) {
+                        // Feedback visual simple
+                        btn.innerText = "¡Agregado!";
+                        btn.classList.add('bg-green-600');
+
+                        if (window.showToast) window.showToast(`"${currentProductData.nombre}" añadido al carrito`, 'success');
+
+                        setTimeout(() => {
+                            btn.innerText = "Agregar al Carrito";
+                            btn.classList.remove('bg-green-600');
+                            // @ts-ignore
+                            btn.disabled = false;
+                        }, 2000);
+                    } else {
+                        btn.innerText = originalText;
+                        // @ts-ignore
+                        btn.disabled = false;
+                        if (window.showToast) window.showToast(result.error, 'error');
+                        else alert(result.error);
+                    }
                 });
             }
 

@@ -1,4 +1,5 @@
 import { persistentAtom } from '@nanostores/persistent';
+import { checkStock } from '../services/products';
 
 // Estado persistente del carrito (se guarda en localStorage automáticamente)
 // La clave en localStorage será 'wnp_cart'
@@ -55,3 +56,56 @@ export function updateQuantity(itemId, newQuantity) {
 export function clearCart() {
   cartItems.set([]);
 }
+
+/**
+ * Añadir producto al carrito con validación de stock
+ * @param {object} product
+ */
+export const addItemToCart = async (product) => {
+  try {
+    const stock = await checkStock(product.id);
+    const currentItems = cartItems.get();
+    const existingItem = currentItems.find((item) => item.id === product.id);
+    const currentQty = existingItem ? existingItem.quantity : 0;
+
+    if (currentQty + 1 > stock) {
+      throw new Error(`Solo quedan ${stock} unidades disponibles.`);
+    }
+
+    addToCart(product);
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Actualizar cantidad con validación de stock
+ * @param {string} itemId
+ * @param {number} newQuantity
+ */
+export const updateItemQuantity = async (itemId, newQuantity) => {
+  if (newQuantity < 1) return { success: false, error: "Cantidad mínima es 1" };
+
+  try {
+    const currentItems = cartItems.get();
+    const item = currentItems.find(i => i.id === itemId);
+
+    if (!item) return { success: false, error: "Producto no encontrado" };
+
+    // Solo verificamos stock si estamos aumentando la cantidad
+    if (newQuantity > item.quantity) {
+        const stock = await checkStock(itemId);
+        if (newQuantity > stock) {
+            throw new Error(`Solo quedan ${stock} unidades disponibles.`);
+        }
+    }
+
+    updateQuantity(itemId, newQuantity);
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: error.message };
+  }
+};

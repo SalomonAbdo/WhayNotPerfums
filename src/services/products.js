@@ -1,5 +1,5 @@
 import { db } from "../firebase/client";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 
 /**
  * Obtiene todos los productos de la colección 'products'
@@ -50,3 +50,33 @@ export const checkStock = async (id) => {
     return product.stock || 0;
 };
 
+/**
+ * Añade un nuevo producto
+ * @param {object} productData
+ */
+export const addProduct = async (productData) => {
+    try {
+        const docRef = await addDoc(collection(db, "products"), {
+            ...productData,
+            createdAt: serverTimestamp()
+        });
+        return { success: true, id: docRef.id };
+    } catch (error) {
+        console.error("Error añadiendo producto: ", error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Elimina un producto por ID
+ * @param {string} id
+ */
+export const deleteProduct = async (id) => {
+    try {
+        await deleteDoc(doc(db, "products", id));
+        return { success: true };
+    } catch (error) {
+        console.error("Error eliminando producto: ", error);
+        return { success: false, error: error.message };
+    }
+};

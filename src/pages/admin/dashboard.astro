@@ -1,0 +1,353 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Admin Dashboard | Why Not Perfums">
+    <div class="max-w-7xl mx-auto px-6 py-24 min-h-screen">
+
+        <div class="flex justify-between items-center mb-12">
+            <h1 class="font-serif text-4xl text-brand-dark">Panel de Administración</h1>
+            <div id="user-info" class="text-right hidden">
+                <p class="text-sm text-gray-500">Logueado como</p>
+                <p class="font-bold text-brand-dark" id="user-email">...</p>
+                <button id="logout-btn" class="text-xs text-red-500 hover:text-red-700 underline mt-1">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <!-- Auth Guard Message -->
+        <div id="auth-wall" class="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-gray-400 mb-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            <h2 class="text-2xl font-serif text-brand-dark mb-4">Acceso Restringido</h2>
+            <p class="text-gray-500 mb-8 max-w-md">Esta sección es exclusiva para administradores. Por favor inicia sesión para continuar.</p>
+            <button id="login-trigger" class="bg-brand-dark text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-brand-accent transition-colors shadow-lg">
+                Iniciar Sesión
+            </button>
+        </div>
+
+        <!-- Admin Content -->
+        <div id="admin-content" class="hidden space-y-12">
+
+            <!-- Add Product Form -->
+            <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+                <h2 class="font-serif text-2xl text-brand-dark mb-6 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-brand-accent">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Agregar Nuevo Perfume
+                </h2>
+
+                <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nombre del Perfume</label>
+                            <input type="text" name="nombre" required class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all" placeholder="Ej: Sauvage Elixir">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Marca</label>
+                            <input type="text" name="brand" required class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all" placeholder="Ej: Dior">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Precio</label>
+                                <input type="number" name="precio" required min="0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all" placeholder="99990">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Stock Inicial</label>
+                                <input type="number" name="stock" required min="1" value="10" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Categoría</label>
+                            <select name="categoria" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
+                                <option value="hombre">Hombre</option>
+                                <option value="mujer">Mujer</option>
+                                <option value="unisex">Unisex</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Descripción</label>
+                            <textarea name="descripcion" required rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all" placeholder="Describe las notas olfativas y el carácter del perfume..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Imagen del Producto</label>
+                            <div class="relative group">
+                                <label for="image-upload" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400">
+                                        <svg class="w-8 h-8 mb-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                        </svg>
+                                        <p class="text-sm mb-1"><span class="font-semibold">Click para subir</span> o arrastra</p>
+                                        <p class="text-xs">PNG, JPG or WEBP (MAX. 2MB)</p>
+                                    </div>
+                                    <input id="image-upload" type="file" class="hidden" accept="image/*" required />
+                                </label>
+                                <!-- Preview -->
+                                <img id="image-preview" src="" alt="Preview" class="absolute inset-0 w-full h-full object-contain bg-white rounded-lg p-2 hidden pointer-events-none" />
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="isNew" class="w-5 h-5 rounded border-gray-300 text-brand-dark focus:ring-brand-accent">
+                                <span class="text-sm font-medium text-gray-700">Marcar como "Nuevo"</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="w-full bg-brand-dark text-white py-4 font-bold uppercase tracking-widest hover:bg-brand-accent transition-colors shadow-lg">
+                            Publicar Producto
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Product List -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                 <h2 class="font-serif text-2xl text-brand-dark mb-6 flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-brand-accent">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                    </svg>
+                    Inventario Actual
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                                <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
+                                <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Stock</th>
+                                <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body" class="text-sm text-gray-600">
+                            <tr>
+                                <td colspan="4" class="py-6 text-center text-gray-400">Cargando inventario...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { auth, db, storage } from '../../firebase/client';
+    import { onAuthStateChanged, signOut } from 'firebase/auth';
+    import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+    import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+    import { addProduct, deleteProduct } from '../../services/products';
+
+    const authWall = document.getElementById('auth-wall');
+    const adminContent = document.getElementById('admin-content');
+    const loginTrigger = document.getElementById('login-trigger');
+    const userInfo = document.getElementById('user-info');
+    const userEmailEl = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const form = document.getElementById('add-product-form') as HTMLFormElement;
+    const imageInput = document.getElementById('image-upload') as HTMLInputElement;
+    const imagePreview = document.getElementById('image-preview') as HTMLImageElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+    const tableBody = document.getElementById('products-table-body');
+
+    // 1. Auth Logic
+    // DEFINIR AQUÍ LOS EMAILS DE ADMINISTRADORES
+    const ADMIN_EMAILS = ['admin@wnp.cl', 'abdosalomon@gmail.com'];
+
+    console.log("Dashboard script loaded. Checking auth...");
+
+    onAuthStateChanged(auth, (user) => {
+        console.log("Auth state changed:", user ? user.email : "No logged in");
+
+        if (user && ADMIN_EMAILS.includes(user.email || '')) {
+            console.log("Access GRANTED to:", user.email);
+            // Usuario logueado Y autorizado
+            authWall?.classList.add('hidden');
+            adminContent?.classList.remove('hidden');
+            if (userInfo) userInfo.classList.remove('hidden');
+            if (userEmailEl) userEmailEl.textContent = user.email;
+
+            // Cargar productos
+            subscribeToProducts();
+        } else {
+            console.log("Access DENIED. User:", user ? user.email : "null");
+            // Usuario no logueado o no autorizado
+            authWall?.classList.remove('hidden');
+            adminContent?.classList.add('hidden');
+            if (userInfo) userInfo.classList.add('hidden');
+
+            if (user) {
+                // Logueado pero no admin
+                const title = authWall?.querySelector('h2');
+                const msg = authWall?.querySelector('p');
+                if(title) title.textContent = "Acceso Denegado";
+                if(msg) msg.textContent = `El usuario ${user.email} no tiene permisos de administrador.`;
+                if(loginTrigger) {
+                    loginTrigger.textContent = "Cambiar Cuenta";
+                    loginTrigger.onclick = async () => {
+                         await signOut(auth);
+                         if ((window as any).openAuthModal) (window as any).openAuthModal();
+                    }
+                }
+            } else {
+                 if(loginTrigger) loginTrigger.textContent = "Iniciar Sesión";
+            }
+        }
+    });
+
+    loginTrigger?.addEventListener('click', () => {
+        if ((window as any).openAuthModal) (window as any).openAuthModal();
+    });
+
+    logoutBtn?.addEventListener('click', async () => {
+        await signOut(auth);
+        window.location.reload();
+    });
+
+    // 2. Image Preview Logic
+    imageInput?.addEventListener('change', (e) => {
+        const file = imageInput.files ? imageInput.files[0] : null;
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if(imagePreview && e.target) {
+                    imagePreview.src = e.target.result as string;
+                    imagePreview.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        } else {
+             if(imagePreview) imagePreview.classList.add('hidden');
+        }
+    });
+
+    // 3. Add Product Logic
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!imageInput.files || imageInput.files.length === 0) {
+            if ((window as any).showToast) (window as any).showToast('Por favor selecciona una imagen', 'error');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Subiendo imagen...';
+
+        try {
+            const file = imageInput.files[0];
+            const formData = new FormData(form);
+
+            // Subir imagen a Storage
+            // Usamos un timestamp para nombre único
+            const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            submitBtn.textContent = 'Guardando en base de datos...';
+
+            const productData = {
+                nombre: formData.get('nombre'),
+                brand: formData.get('brand'),
+                precio: Number(formData.get('precio')),
+                stock: Number(formData.get('stock')),
+                categoria: formData.get('categoria'),
+                descripcion: formData.get('descripcion'),
+                isNew: formData.get('isNew') === 'on',
+                imagen_url: downloadURL // Guardamos la URL pública
+            };
+
+            const result = await addProduct(productData);
+
+            if (result.success) {
+                if ((window as any).showToast) (window as any).showToast('¡Producto publicado exitosamente!', 'success');
+                form.reset();
+                if(imagePreview) imagePreview.classList.add('hidden');
+            } else {
+                throw new Error(result.error);
+            }
+
+        } catch (error: any) {
+            console.error(error);
+            if ((window as any).showToast) (window as any).showToast(error.message || 'Error al guardar producto', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'PUBLICAR PRODUCTO';
+        }
+    });
+
+    // 4. Products List Logic
+    function subscribeToProducts() {
+        // Quitamos orderBy para ver todos los productos (incluso antiguos)
+        const q = query(collection(db, "products"));
+
+        onSnapshot(q, (snapshot) => {
+            if (!tableBody) return;
+
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-gray-500">No hay productos registrados.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = snapshot.docs.map(doc => {
+                const p = doc.data();
+                return `
+                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${p.imagen_url || 'https://placehold.co/40'}" class="w-10 h-10 rounded object-cover bg-gray-100" />
+                                <div>
+                                    <p class="font-bold text-gray-900">${p.nombre}</p>
+                                    <p class="text-xs text-gray-500">${p.brand} · ${p.categoria}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 font-medium">$${p.precio}</td>
+                        <td class="py-4 px-4 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-bold ${p.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${p.stock}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <button class="delete-btn text-red-400 hover:text-red-700 font-bold text-xs uppercase tracking-wider" data-id="${doc.id}">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        });
+
+        // Event delegation para eliminar
+        tableBody?.addEventListener('click', async (e) => {
+            const target = e.target as HTMLElement;
+            if (target.classList.contains('delete-btn')) {
+                const id = target.dataset.id;
+                if (!id) return;
+
+                if (confirm('¿Estás seguro de que quieres eliminar este producto permanentemente?')) {
+                    const result = await deleteProduct(id);
+                     if (result.success) {
+                        if ((window as any).showToast) (window as any).showToast('Producto eliminado', 'success');
+                    } else {
+                        if ((window as any).showToast) (window as any).showToast('Error al eliminar', 'error');
+                    }
+                }
+            }
+        });
+    }
+
+</script>

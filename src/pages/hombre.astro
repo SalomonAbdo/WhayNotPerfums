@@ -52,7 +52,7 @@ import Layout from '../layouts/Layout.astro';
   import { db, storage } from "../firebase/client";
   import { collection, query, where, onSnapshot } from "firebase/firestore";
   import { ref, getDownloadURL } from "firebase/storage";
-  import { addToCart } from "../store/cartStore";
+  import { addItemToCart } from "../store/cartStore";
 
   const container = document.getElementById('products-grid');
   const countSpan = document.getElementById('products-count');
@@ -64,14 +64,22 @@ import Layout from '../layouts/Layout.astro';
 
   // Delegación de eventos para el botón 'Añadir'
   if (container) {
-    container.addEventListener('click', (e: any) => {
+    container.addEventListener('click', async (e: any) => {
         const btn = e.target.closest('.add-to-cart-btn');
         if (btn) {
+            // Prevenir navegación si el botón está dentro de un anchor (aunque aquí parece estar fuera)
+            e.preventDefault();
+            e.stopPropagation();
+
             const id = btn.dataset.id;
             const product = productsMap.get(id);
             if (product) {
+                btn.disabled = true;
+                const originalText = btn.innerText;
+                btn.innerText = "...";
+
                 // Mapear campos de Firestore a estructura del carrito
-                addToCart({
+                const result = await addItemToCart({
                     id: product.id,
                     name: product.nombre || product.name,
                     price: product.precio,
@@ -79,17 +87,27 @@ import Layout from '../layouts/Layout.astro';
                     quantity: 1
                 });
 
-                // Feedback visual simple (el botón cambia texto temporalmente)
-                const originalText = btn.innerText;
-                btn.innerText = "¡Añadido!";
-                btn.classList.add('bg-green-600', 'text-white');
-                btn.classList.remove('bg-white', 'text-brand-dark');
+                if (result.success) {
+                    // Feedback visual simple (el botón cambia texto temporalmente)
+                    btn.innerText = "¡Añadido!";
+                    btn.classList.add('bg-green-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-brand-dark');
 
-                setTimeout(() => {
+                    if (window.showToast) window.showToast(`"${product.name}" añadido al carrito`, 'success');
+
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.remove('bg-green-600', 'text-white');
+                        btn.classList.add('bg-white', 'text-brand-dark');
+                        btn.disabled = false;
+                    }, 1500);
+                } else {
+                    if (window.showToast) window.showToast(result.error, 'error');
+                    else alert(result.error);
+
                     btn.innerText = originalText;
-                    btn.classList.remove('bg-green-600', 'text-white');
-                    btn.classList.add('bg-white', 'text-brand-dark');
-                }, 1500);
+                    btn.disabled = false;
+                }
             }
         }
     });

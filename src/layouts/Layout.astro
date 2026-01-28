@@ -25,12 +25,107 @@ const { title } = Astro.props;
 <body class="flex flex-col min-h-screen">
 <Navbar />
 <AuthModal /> <!-- Insertamos el modal globalmente -->
+
+<!-- Global Big Alert Overlay -->
+<div id="global-alert-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" aria-hidden="true">
+    <div id="global-alert-box" class="bg-white relative w-full max-w-md mx-6 p-8 rounded-xl shadow-2xl transform scale-95 transition-all duration-300 translate-y-4">
+
+        <!-- Decorative Top Line -->
+        <div id="alert-accent-bar" class="absolute top-0 inset-x-0 h-1.5 bg-brand-dark rounded-t-xl"></div>
+
+        <div class="text-center">
+            <!-- Icon -->
+            <div id="alert-icon" class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6 border-4 border-white shadow-lg">
+                <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+            </div>
+
+            <!-- Content -->
+            <h3 id="alert-title" class="text-2xl font-serif text-gray-900 mb-2">¡Éxito!</h3>
+            <div class="mt-2">
+                <p id="alert-message" class="text-gray-600 font-sans text-lg">Operación realizada correctamente.</p>
+            </div>
+
+            <!-- Close Button (optional manual dismiss) -->
+            <div class="mt-8">
+                 <button id="alert-close-btn" class="inline-flex justify-center rounded-md border border-transparent bg-brand-dark px-8 py-3 text-sm font-bold text-white uppercase tracking-widest hover:bg-brand-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 transition-colors w-full sm:w-auto shadow-lg">
+                    Entendido
+                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="flex-grow">
     <slot />
 </div>
 <Footer />
+
+<script is:inline>
+  window.showToast = (message, type = 'success') => {
+      const overlay = document.getElementById('global-alert-overlay');
+      const box = document.getElementById('global-alert-box');
+      const iconContainer = document.getElementById('alert-icon');
+      const titleEl = document.getElementById('alert-title');
+      const messageEl = document.getElementById('alert-message');
+      const accentBar = document.getElementById('alert-accent-bar');
+      const closeBtn = document.getElementById('alert-close-btn');
+
+      if (!overlay || !box) return;
+
+      // Configuración según tipo
+      if (type === 'error') {
+          // Estilos Error / Validacion (Reemplazo de rojos por Dorados y Negros)
+          iconContainer.className = 'mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-light mb-6 border-4 border-brand-accent shadow-lg animate-pulse';
+          iconContainer.innerHTML = '<svg class="h-10 w-10 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>';
+
+          titleEl.textContent = '¡Atención!';
+          // Accent bar en negro para contraste elegante
+          accentBar.className = 'absolute top-0 inset-x-0 h-1.5 bg-brand-dark rounded-t-xl';
+
+          // Boton negro con hover dorado
+          if(closeBtn) closeBtn.className = 'inline-flex justify-center rounded-md border border-transparent bg-brand-dark px-8 py-3 text-sm font-bold text-white uppercase tracking-widest hover:bg-brand-accent transition-colors w-full sm:w-auto shadow-lg';
+      } else {
+          // Estilos Success
+          iconContainer.className = 'mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6 border-4 border-white shadow-lg animate-bounce';
+          iconContainer.innerHTML = '<svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+          titleEl.textContent = '¡Excelente!';
+          accentBar.className = 'absolute top-0 inset-x-0 h-1.5 bg-green-500 rounded-t-xl';
+           if(closeBtn) closeBtn.className = 'inline-flex justify-center rounded-md border border-transparent bg-brand-dark px-8 py-3 text-sm font-bold text-white uppercase tracking-widest hover:bg-brand-accent transition-colors w-full sm:w-auto shadow-lg';
+      }
+
+      messageEl.textContent = message;
+
+      // Mostrar
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      box.classList.remove('scale-95', 'translate-y-4');
+      box.classList.add('scale-100', 'translate-y-0');
+
+      // Función para cerrar
+      const hideAlert = () => {
+          overlay.classList.add('opacity-0', 'pointer-events-none');
+          box.classList.add('scale-95', 'translate-y-4');
+          box.classList.remove('scale-100', 'translate-y-0');
+      };
+
+      // Cerrar al click en botón
+      if(closeBtn) {
+          closeBtn.onclick = hideAlert;
+      }
+
+      // Cerrar al click fuera
+      overlay.onclick = (e) => {
+          if (e.target === overlay) hideAlert();
+      };
+
+      // Auto cerrar despues de un tiempo (opcional, más largo para alertas grandes)
+      // Guardamos timer en window para poder cancelarlo si se abre otro
+      if (window.alertTimer) clearTimeout(window.alertTimer);
+      window.alertTimer = setTimeout(hideAlert, 3500);
+  };
+</script>
 </body>
-</html>
 
 <style is:global>
 	/* Esto asegura que la fuente base sea Inter */
