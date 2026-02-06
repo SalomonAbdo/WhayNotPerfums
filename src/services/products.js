@@ -1,5 +1,5 @@
 import { db } from "../firebase/client";
-import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 /**
  * Obtiene todos los productos de la colección 'products'
@@ -77,6 +77,29 @@ export const deleteProduct = async (id) => {
         return { success: true };
     } catch (error) {
         console.error("Error eliminando producto: ", error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Actualiza un producto existente
+ * @param {string} id
+ * @param {object} productData
+ */
+export const updateProduct = async (id, productData) => {
+    try {
+        console.log(`Attempting to update product ${id}`, productData);
+        if (!id) throw new Error("ID is required for update");
+
+        const docRef = doc(db, "products", id);
+        await updateDoc(docRef, {
+            ...productData,
+            updatedAt: serverTimestamp()
+        });
+        console.log(`Product ${id} updated successfully`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error actualizando producto: ", error);
         return { success: false, error: error.message };
     }
 };

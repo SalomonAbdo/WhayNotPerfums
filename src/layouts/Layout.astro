@@ -26,34 +26,30 @@ const { title } = Astro.props;
 <Navbar />
 <AuthModal /> <!-- Insertamos el modal globalmente -->
 
-<!-- Global Big Alert Overlay -->
-<div id="global-alert-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" aria-hidden="true">
-    <div id="global-alert-box" class="bg-white relative w-full max-w-md mx-6 p-8 rounded-xl shadow-2xl transform scale-95 transition-all duration-300 translate-y-4">
-
-        <!-- Decorative Top Line -->
-        <div id="alert-accent-bar" class="absolute top-0 inset-x-0 h-1.5 bg-brand-dark rounded-t-xl"></div>
-
-        <div class="text-center">
+<!-- Global Toast Notification (Centered) -->
+<div id="global-alert-overlay" class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+    <div id="global-alert-box" class="bg-white pointer-events-auto w-full max-w-sm rounded-lg shadow-2xl opacity-0 scale-95 transition-all duration-300 border-l-4 overflow-hidden transform">
+        <div class="p-6 flex items-center gap-4">
             <!-- Icon -->
-            <div id="alert-icon" class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6 border-4 border-white shadow-lg">
-                <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+            <div id="alert-icon" class="flex-shrink-0">
+                <!-- Icon injected by JS -->
             </div>
 
             <!-- Content -->
-            <h3 id="alert-title" class="text-2xl font-serif text-gray-900 mb-2">¡Éxito!</h3>
-            <div class="mt-2">
-                <p id="alert-message" class="text-gray-600 font-sans text-lg">Operación realizada correctamente.</p>
+            <div class="flex-1 pt-0.5">
+                <h3 id="alert-title" class="text-sm font-bold text-gray-900 leading-none mb-1"></h3>
+                <p id="alert-message" class="text-sm text-gray-600 leading-snug"></p>
             </div>
 
-            <!-- Close Button (optional manual dismiss) -->
-            <div class="mt-8">
-                 <button id="alert-close-btn" class="inline-flex justify-center rounded-md border border-transparent bg-brand-dark px-8 py-3 text-sm font-bold text-white uppercase tracking-widest hover:bg-brand-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 transition-colors w-full sm:w-auto shadow-lg">
-                    Entendido
-                 </button>
-            </div>
+            <!-- Close Button -->
+            <button id="alert-close-btn" class="flex-shrink-0 text-gray-400 hover:text-gray-600">
+                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
         </div>
+        <!-- Progress Bar (Optional visual touch) -->
+        <div id="alert-accent-bar" class="h-1 w-full bg-gray-200 hidden"></div>
     </div>
 </div>
 
@@ -69,44 +65,33 @@ const { title } = Astro.props;
       const iconContainer = document.getElementById('alert-icon');
       const titleEl = document.getElementById('alert-title');
       const messageEl = document.getElementById('alert-message');
-      const accentBar = document.getElementById('alert-accent-bar');
       const closeBtn = document.getElementById('alert-close-btn');
 
-      if (!overlay || !box) return;
+      if (!box) return;
 
       // Configuración según tipo
       if (type === 'error') {
-          // Estilos Error / Validacion (Reemplazo de rojos por Dorados y Negros)
-          iconContainer.className = 'mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-light mb-6 border-4 border-brand-accent shadow-lg animate-pulse';
-          iconContainer.innerHTML = '<svg class="h-10 w-10 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>';
-
-          titleEl.textContent = '¡Atención!';
-          // Accent bar en negro para contraste elegante
-          accentBar.className = 'absolute top-0 inset-x-0 h-1.5 bg-brand-dark rounded-t-xl';
-
-          // Boton negro con hover dorado
-          if(closeBtn) closeBtn.className = 'inline-flex justify-center rounded-md border border-transparent bg-brand-dark px-8 py-3 text-sm font-bold text-white uppercase tracking-widest hover:bg-brand-accent transition-colors w-full sm:w-auto shadow-lg';
+          box.className = 'bg-white pointer-events-auto w-full max-w-sm rounded-lg shadow-2xl opacity-0 scale-95 transition-all duration-300 border-l-4 overflow-hidden transform border-red-500';
+          iconContainer.innerHTML = '<svg class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>';
+          titleEl.textContent = 'Error';
       } else {
-          // Estilos Success
-          iconContainer.className = 'mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6 border-4 border-white shadow-lg animate-bounce';
-          iconContainer.innerHTML = '<svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
-          titleEl.textContent = '¡Excelente!';
-          accentBar.className = 'absolute top-0 inset-x-0 h-1.5 bg-green-500 rounded-t-xl';
-           if(closeBtn) closeBtn.className = 'inline-flex justify-center rounded-md border border-transparent bg-brand-dark px-8 py-3 text-sm font-bold text-white uppercase tracking-widest hover:bg-brand-accent transition-colors w-full sm:w-auto shadow-lg';
+          box.className = 'bg-white pointer-events-auto w-full max-w-sm rounded-lg shadow-2xl opacity-0 scale-95 transition-all duration-300 border-l-4 overflow-hidden transform border-green-500';
+          iconContainer.innerHTML = '<svg class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+          titleEl.textContent = 'Éxito';
       }
 
       messageEl.textContent = message;
 
-      // Mostrar
-      overlay.classList.remove('opacity-0', 'pointer-events-none');
-      box.classList.remove('scale-95', 'translate-y-4');
-      box.classList.add('scale-100', 'translate-y-0');
+      // Mostrar (Wait a tick to allow browser to register initial class state if reused immediately)
+      requestAnimationFrame(() => {
+          box.classList.remove('opacity-0', 'scale-95');
+          box.classList.add('opacity-100', 'scale-100');
+      });
 
       // Función para cerrar
       const hideAlert = () => {
-          overlay.classList.add('opacity-0', 'pointer-events-none');
-          box.classList.add('scale-95', 'translate-y-4');
-          box.classList.remove('scale-100', 'translate-y-0');
+          box.classList.add('opacity-0', 'scale-95');
+          box.classList.remove('opacity-100', 'scale-100');
       };
 
       // Cerrar al click en botón
@@ -114,15 +99,9 @@ const { title } = Astro.props;
           closeBtn.onclick = hideAlert;
       }
 
-      // Cerrar al click fuera
-      overlay.onclick = (e) => {
-          if (e.target === overlay) hideAlert();
-      };
-
-      // Auto cerrar despues de un tiempo (opcional, más largo para alertas grandes)
-      // Guardamos timer en window para poder cancelarlo si se abre otro
+      // Auto cerrar despues de un tiempo
       if (window.alertTimer) clearTimeout(window.alertTimer);
-      window.alertTimer = setTimeout(hideAlert, 3500);
+      window.alertTimer = setTimeout(hideAlert, 4000);
   };
 </script>
 </body>
